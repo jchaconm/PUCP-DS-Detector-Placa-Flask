@@ -1,3 +1,17 @@
+### Prepare environment
+1.Create virtual environment 
+```
+virtualenv venv
+```
+
+2. Activate virtual environment (in CMD)
+```
+.\venv\Scripts\Activate
+```
+3. Install libraries 
+```
+pip install -r requirements.txt
+```
 
 ### Running the project
 1. Ensure that you are in the project home directory. Create the machine learning model by running below command from command prompt -
