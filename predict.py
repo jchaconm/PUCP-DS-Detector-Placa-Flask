@@ -18,7 +18,7 @@ def callALPR(image):
    base64image = encode(image)
    SECRET_KEY = 'sk_d6c76f5e23014eff289f1313'
    url = 'https://api.openalpr.com/v3/recognize_bytes?recognize_vehicle=1&country=us&secret_key=%s' % (SECRET_KEY)
-   r = requests.post(url, data = base64image, verify=False)
+   r = requests.post(url, data=base64image, verify=False)
    output_dict = r.json()
    return {"placa": output_dict['results'][0]['plate'],
             "flag_alpr" : True}

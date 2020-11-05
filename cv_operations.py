@@ -1,3 +1,5 @@
+import uuid
+
 from skimage.io import imread
 from skimage.filters import threshold_otsu
 import imutils
@@ -38,7 +40,6 @@ def check_video(video,upload_folder):
     # car image -> grayscale image -> binary image
     car_image_output = imread("./output/frame%d.jpg"%(count-1))
     car_image_output = imutils.rotate(car_image_output, 270)
-
     car_image = imread("./output/frame%d.jpg"%(count-1), as_gray=True)
     car_image = imutils.rotate(car_image, 270)
 
