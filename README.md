@@ -4,11 +4,11 @@
 virtualenv venv
 ```
 
-2. Activate virtual environment (in CMD)
+2.Activate virtual environment (in CMD)
 ```
 .\venv\Scripts\Activate
 ```
-3. Install libraries 
+3.Install libraries 
 ```
 pip install -r requirements.txt
 ```
