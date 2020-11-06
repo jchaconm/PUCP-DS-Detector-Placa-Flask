@@ -33,6 +33,19 @@ app.config['JWT_SECRET_KEY']="\xf9'\xe4p(\xa9\x12\x1a!\x94\x8d\x1c\x99l\xc7\xb7e
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://tfikptad:iIVeftDYpaqg60wKy8uhTeVFH2Jb2STO@lallah.db.elephantsql.com:5432/tfikptad'
 db = SQLAlchemy(app)
 
+
+class historial(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    placa = db.Column(db.String)
+    foto = db.Column(db.String)
+    user_id = db.Column(db.String, db.ForeignKey('user.email'))
+
+    def serialize(self):
+        return {
+            'placa': self.placa,
+            'foto': self.foto,
+        }
+
 class user(db.Model):
     email = db.Column(db.String, primary_key=True)
     password = db.Column(db.String)
@@ -93,32 +106,51 @@ class user(db.Model):
 def home():
     return render_template('index.html')
 
+@app.route('/user-history',methods=['GET'])
+def user_history():
+    lst_predicciones = historial.query.filter_by(user_id="xyz")\
+        .order_by(historial.id.desc()).all() #response_object["email"])
+    for prediccion in lst_predicciones:
+        car_image_output = imread("./result_img/" + prediccion.foto + ".jpg")
+        base64img = encode(car_image_output)
+        prediccion.foto = base64img
+    return make_response(jsonify(results=[elem.serialize() for elem in lst_predicciones])), 200
 
 @app.route('/history')
 def history():
     #car_image_output = imread("./result_img/81251533702869185905593538477945253758.jpg")
     #base64img = encode(car_image_output)
-    return render_template('test.html')#,image=base64img)
+    return render_template('history.html')#,image=base64img)
 
 @app.route('/predict',methods=['POST'])
 def predict():
     if request.method == "POST":
         response_object = validate_token();
+
         if response_object['status'] == 'success':
-            video = request.files['video']
-            plates_like_objects, image_binary, car_image = check_video(video, app.config['UPLOAD_FOLDER'])
-            result_dict = get_placa(plates_like_objects, image_binary, model)
-            prediction_id = uuid.uuid4()
-            result_img = Image.fromarray(car_image).convert('RGB')
-            # Guardar la imagen
-            result_img.save("./result_img/%d.jpg" % prediction_id)
-            # TODO guardar predicción , ruta de imagen en BD y usuario en tabla de BD,para listarlo luego en Historial
-            base64img = encode(car_image)
-            # limpiar carpeta output y uploads
-            delete_files_in_directory(app.config['UPLOAD_FOLDER'])
-            delete_files_in_directory('output')
-            result_dict["img"] = base64img
-            return make_response(jsonify(result_dict)), 200
+            try:
+                video = request.files['video']
+                plates_like_objects, image_binary, car_image = check_video(video, app.config['UPLOAD_FOLDER'])
+                result_dict = get_placa(plates_like_objects, image_binary, model)
+                prediction_id = uuid.uuid4()
+                result_img = Image.fromarray(car_image).convert('RGB')
+                # Guardar la imagen
+                result_img.save("./result_img/" + str(prediction_id) +".jpg")
+                # TODO guardar predicción , ruta de imagen en BD y usuario en tabla de BD,para listarlo luego en Historial
+                nwPrediccion = historial(user_id=response_object['email'],placa=result_dict['placa'],
+                                         foto=str(prediction_id))
+                db.session.add(nwPrediccion)
+                db.session.commit()
+
+                base64img = encode(car_image)
+                # limpiar carpeta output y uploads
+                delete_files_in_directory(app.config['UPLOAD_FOLDER'])
+                delete_files_in_directory('output')
+                result_dict["img"] = base64img
+                return make_response(jsonify(result_dict)), 200
+            except Exception:
+                return make_response(jsonify({"status":"failure"})), 400
+
         else:
             return make_response(jsonify(response_object)), 401
         #return render_template('index.html',image=base64img, prediction_text='Placa detectada es {}'.format(result_dict['placa']))
@@ -200,6 +232,7 @@ def validate_token():
                 if current_user:
                     responseObject = {
                         'status': 'success',
+                        'email': resp
                     }
                     return responseObject
             responseObject = {

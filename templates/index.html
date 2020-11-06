@@ -15,6 +15,14 @@
 
 <body>
  <div class="row">
+     <div class="row">
+
+         <div class="col-md-2"></div>
+     <div class="col-md-8 pb-3 pt-3">
+         <strong class="text-white" id="lblUsername">   </strong>  </div>
+     </div>
+     <div id="dvHistorial" class="col-md-2 pb-3 pt-3" >  <a href="history">HISTORIAL </a> </div>
+
     <div class="col-md-12 col-sm-12">
         <div class="center_div">
     <div class="form-group">
@@ -22,7 +30,7 @@
 	<h1>Predictor de placa</h1>
 
      <!-- Main Input For Receiving Query to our ML -->
-    	<input  id="video" type="file" name="video" placeholder="Video" required="required" />
+    	<input  id="video" type="file" name="video" placeholder="Video" accept="video/*" required="required" />
         <button type="submit" class="btn btn-primary btn-block btn-large" onclick="predict()">Analizar</button>
 
    <br>
@@ -35,22 +43,32 @@
      <div class="col-md-12 text-center">
         <div id="resultadoImg">
 
-        <div>
+        </div>
      </div>
-
+ </div>
  </div>
 
 <script>
-
     window.onload = function () {
         if (localStorage.getItem("token") == null) {
+            document.getElementById("dvHistorial").style.display = "none"
             window.location.replace('login')
+
         } else {
-            alert("Hola " + localStorage.getItem("email")
-            )
+           document.getElementById("lblUsername").textContent = "HOLA " + localStorage.getItem("email");
+
         }
     }
     function predict(){
+        var dvResultadoImg = document.getElementById("resultadoImg");
+        if(dvResultadoImg.hasChildNodes()){
+            dvResultadoImg.removeChild(dvResultadoImg.childNodes[0]);
+        }
+
+        var dvResultadoPlaca= document.getElementById("resultadoPlaca");
+        if(dvResultadoPlaca.hasChildNodes()){
+            dvResultadoPlaca.removeChild(dvResultadoPlaca.childNodes[0]);
+        }
         const formData = new FormData()
         formData.append('video', document.getElementById('video').files[0])
 
@@ -63,10 +81,12 @@
     })
       .then(function (response) {
         if (response.status !== 200) {
-
           console.log(`Looks like there was a problem. Status code: ${response.status}`);
           if(response.status == 401){
              window.location.replace('login')
+          }
+          else if(response.status == 400){
+              alert("Sucedió un error. Intente de nuevo con otro video");
           }
           return;
         }
