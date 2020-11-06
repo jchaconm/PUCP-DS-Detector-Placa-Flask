@@ -22,24 +22,76 @@
 	<h1>Predictor de placa</h1>
 
      <!-- Main Input For Receiving Query to our ML -->
-    <form action="{{ url_for('predict')}}"method="post" enctype="multipart/form-data">
-    	<input type="file" name="video" placeholder="Video" required="required" />
-        <button type="submit" class="btn btn-primary btn-block btn-large">Analizar</button>
-    </form>
+    	<input  id="video" type="file" name="video" placeholder="Video" required="required" />
+        <button type="submit" class="btn btn-primary btn-block btn-large" onclick="predict()">Analizar</button>
 
    <br>
    <br>
-     <h4 class="text-white text-center"> {{ prediction_text }} </h4>
+     <div id="resultadoPlaca">
+     </div>
         <br></div>
             </div>
  </div>
      <div class="col-md-12 text-center">
-    {% if image %}
-            <img  width="800" height="500" src="data:image/png;base64,{{ image }}"\>
-    {% endif %}
+        <div id="resultadoImg">
+
+        <div>
      </div>
 
  </div>
+
+<script>
+
+    window.onload = function () {
+        if (localStorage.getItem("token") == null) {
+            window.location.replace('login')
+        } else {
+            alert("Hola " + localStorage.getItem("email")
+            )
+        }
+    }
+    function predict(){
+        const formData = new FormData()
+        formData.append('video', document.getElementById('video').files[0])
+
+     fetch(`${window.origin}/predict`, {
+      method: "POST",
+      body: formData,
+       headers: new Headers({
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      })
+    })
+      .then(function (response) {
+        if (response.status !== 200) {
+
+          console.log(`Looks like there was a problem. Status code: ${response.status}`);
+          if(response.status == 401){
+             window.location.replace('login')
+          }
+          return;
+        }
+        response.json().then(function (data) {
+          console.log(data)
+          var text = document.createElement("h4");
+          text.setAttribute("class", "text-white text-center")
+          text.textContent = data.placa
+          document.getElementById("resultadoPlaca").appendChild(text);
+
+          var img = document.createElement("img");
+          img.setAttribute("src", "data:image/png;base64,"+ data.img);
+          img.setAttribute("height", "400");
+          img.setAttribute("width", "700");
+          img.setAttribute("alt", "Resultado");
+          document.getElementById("resultadoImg").appendChild(img);
+        });
+      })
+      .catch(function (error) {
+        console.log("Fetch error: " + error);
+      });
+
+
+}
+</script>
 
 </body>
 </html>

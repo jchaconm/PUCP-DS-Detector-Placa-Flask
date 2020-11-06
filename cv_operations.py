@@ -12,8 +12,6 @@ import shutil
 
 from werkzeug.utils import secure_filename
 
-
-
 def check_video(video,upload_folder):
     if os.path.exists('output'):
         shutil.rmtree('output')
@@ -63,7 +61,6 @@ def check_video(video,upload_folder):
     plate_objects_cordinates = []
     plate_like_objects = []
 
-
     flag =0
     # regionprops creates a list of properties of all the labelled regions
     for region in regionprops(label_image):
@@ -106,5 +103,4 @@ def check_video(video,upload_folder):
                                                 max_row, max_col))
                 rectBorder = patches.Rectangle((min_col, min_row), max_col - min_col, max_row - min_row, edgecolor="red",
                                               linewidth=2, fill=False)
-
         return (plate_like_objects,binary_car_image,car_image_output)
