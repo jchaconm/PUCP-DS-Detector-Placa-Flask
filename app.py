@@ -108,19 +108,20 @@ def home():
 
 @app.route('/user-history',methods=['GET'])
 def user_history():
-    lst_predicciones = historial.query.filter_by(user_id="xyz")\
-        .order_by(historial.id.desc()).all() #response_object["email"])
-    for prediccion in lst_predicciones:
-        car_image_output = imread("./result_img/" + prediccion.foto + ".jpg")
-        base64img = encode(car_image_output)
-        prediccion.foto = base64img
-    return make_response(jsonify(results=[elem.serialize() for elem in lst_predicciones])), 200
+    response_object = validate_token();
+    if response_object['status'] == 'success':
+        lst_predicciones = historial.query.filter_by(user_id="xyz")\
+            .order_by(historial.id.desc()).all() #response_object["email"])
+        for prediccion in lst_predicciones:
+            car_image_output = imread("./result_img/" + prediccion.foto + ".jpg")
+            base64img = encode(car_image_output)
+            prediccion.foto = base64img
+        return make_response(jsonify(results=[elem.serialize() for elem in lst_predicciones])), 200
+    return make_response(jsonify(response_object))
 
 @app.route('/history')
 def history():
-    #car_image_output = imread("./result_img/81251533702869185905593538477945253758.jpg")
-    #base64img = encode(car_image_output)
-    return render_template('history.html')#,image=base64img)
+    return render_template('history.html')
 
 @app.route('/predict',methods=['POST'])
 def predict():
